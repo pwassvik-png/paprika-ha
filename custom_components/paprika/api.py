@@ -4,10 +4,12 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass
+import gzip
+import json
 from typing import Any, Dict, List, Optional
 
 import async_timeout
-from aiohttp import ClientResponseError, ClientSession
+from aiohttp import ClientResponseError, ClientSession, FormData
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
@@ -78,9 +80,29 @@ class PaprikaClient:
             raise PaprikaApiError(f"Paprika login svarade utan token: {message}")
         self._token = token
 
-    async def _request(self, path: str, *, method: str = "GET", data: Any = None) -> Any:
-        """Perform a request against Paprika and return JSON."""
+    async def _request(
+        self,
+        path: str,
+        *,
+        method: str = "GET",
+        data: Any = None,
+        gzip_json: Any = None,
+    ) -> Any:
+        """Perform a request against Paprika and return JSON.
+
+        `gzip_json` is sent the way the Paprika apps upload changes: as a
+        gzipped JSON file in the multipart field `data`.
+        """
         await self._ensure_token()
+        if gzip_json is not None:
+            form = FormData()
+            form.add_field(
+                "data",
+                gzip.compress(json.dumps(gzip_json).encode()),
+                filename="data",
+                content_type="application/octet-stream",
+            )
+            data = form
         url = f"{API_BASE_URL}{SYNC_PATH}{path}"
         headers = {
             "User-Agent": USER_AGENT,
@@ -97,7 +119,9 @@ class PaprikaClient:
                 ) as resp:
                     if resp.status == 401:
                         await self._ensure_token(force=True)
-                        return await self._request(path, method=method, data=data)
+                        return await self._request(
+                            path, method=method, data=data, gzip_json=gzip_json
+                        )
                     resp.raise_for_status()
                     payload = await resp.json(content_type=None)
         except ClientResponseError as err:
@@ -134,3 +158,8 @@ class PaprikaClient:
     async def async_fetch_recipes(self) -> List[Dict[str, Any]]:
         """Fetch recipe metadata (titles, categories, etc.)."""
         return await self._request("recipes/")
+
+    async def async_save_groceries(self, groceries: List[Dict[str, Any]]) -> None:
+        """Create or update grocery items and tell the apps to sync."""
+        await self._request("groceries/", method="POST", gzip_json=groceries)
+        await self._request("notify/", method="POST")

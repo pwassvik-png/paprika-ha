@@ -21,6 +21,11 @@ class TodoItemStatus:
 class TodoListEntity:
     _attr_todo_items = None
 
+class TodoListEntityFeature:
+    CREATE_TODO_ITEM = 1
+    DELETE_TODO_ITEM = 2
+    UPDATE_TODO_ITEM = 4
+
 class CoordinatorEntity:
     def __init__(self, coordinator):
         self.coordinator = coordinator
@@ -43,6 +48,7 @@ mods = {
 mods["homeassistant.components.todo"].TodoItem = TodoItem
 mods["homeassistant.components.todo"].TodoItemStatus = TodoItemStatus
 mods["homeassistant.components.todo"].TodoListEntity = TodoListEntity
+mods["homeassistant.components.todo"].TodoListEntityFeature = TodoListEntityFeature
 mods["homeassistant.config_entries"].ConfigEntry = object
 mods["homeassistant.core"].HomeAssistant = object
 mods["homeassistant.core"].callback = lambda func: func
@@ -59,7 +65,20 @@ sys.modules[spec.name] = todo
 spec.loader.exec_module(todo)
 
 class Coordinator:
-    def __init__(self, groceries): self.data = {"groceries": groceries}
+    def __init__(self, groceries):
+        self.data = {"groceries": groceries}
+        self.refreshed = False
+    async def async_request_refresh(self): self.refreshed = True
+    def async_set_updated_data(self, data): self.data = data
+
+
+class Client:
+    def __init__(self): self.saved = []
+    async def async_save_groceries(self, groceries): self.saved.append(groceries)
+
+
+MJOLK = {"uid":"1","name":"Mjölk","aisle":"Mejeri","purchased":False,"deleted":False,
+         "list_uid":"LIST-1","order_flag":3,"quantity":"","ingredient":"Mjölk"}
 
 
 class TodoCompatibilityTests(unittest.TestCase):
@@ -82,6 +101,72 @@ class TodoCompatibilityTests(unittest.TestCase):
         entity._handle_coordinator_update()
         self.assertEqual([item.summary for item in entity._attr_todo_items], ["Ris"])
         self.assertTrue(entity.super_update_called)
+
+
+class TodoWriteTests(unittest.IsolatedAsyncioTestCase):
+    def setUp(self):
+        self.coordinator = Coordinator([dict(MJOLK)])
+        self.client = Client()
+        self.entity = todo.PaprikaTodoList(self.coordinator, self.client, "entry")
+
+    async def test_create_sends_new_grocery_on_existing_list(self):
+        await self.entity.async_create_todo_item(TodoItem(summary="Ost"))
+        (saved,) = self.client.saved
+        (item,) = saved
+        self.assertEqual(item["name"], "Ost")
+        self.assertEqual(item["ingredient"], "Ost")
+        self.assertEqual(item["list_uid"], "LIST-1")
+        self.assertFalse(item["purchased"])
+        self.assertEqual(len(item["uid"]), 36)
+        self.assertEqual(item["uid"], item["uid"].upper())
+        self.assertTrue(self.coordinator.refreshed)
+
+    async def test_complete_marks_purchased_and_keeps_other_fields(self):
+        await self.entity.async_update_todo_item(
+            TodoItem(summary="Mjölk", uid="1", status=TodoItemStatus.COMPLETED)
+        )
+        (item,) = self.client.saved[0]
+        self.assertTrue(item["purchased"])
+        self.assertEqual(item["order_flag"], 3)
+        self.assertEqual(item["list_uid"], "LIST-1")
+        self.assertTrue(self.coordinator.refreshed)
+
+    async def test_rename_updates_name(self):
+        await self.entity.async_update_todo_item(
+            TodoItem(summary="Havremjölk", uid="1", status=TodoItemStatus.NEEDS_ACTION)
+        )
+        (item,) = self.client.saved[0]
+        self.assertEqual(item["name"], "Havremjölk")
+        self.assertFalse(item["purchased"])
+
+    async def test_update_does_not_mutate_original_grocery(self):
+        original = self.coordinator.data["groceries"][0]
+        await self.entity.async_update_todo_item(
+            TodoItem(summary="Mjölk", uid="1", status=TodoItemStatus.COMPLETED)
+        )
+        self.assertFalse(original["purchased"])
+
+    async def test_changes_show_up_before_server_refresh(self):
+        await self.entity.async_create_todo_item(TodoItem(summary="Ost"))
+        await self.entity.async_update_todo_item(
+            TodoItem(summary="Mjölk", uid="1", status=TodoItemStatus.COMPLETED)
+        )
+        groceries = self.coordinator.data["groceries"]
+        self.assertEqual([g["name"] for g in groceries], ["Mjölk", "Ost"])
+        self.assertTrue(groceries[0]["purchased"])
+
+    async def test_delete_marks_items_purchased(self):
+        await self.entity.async_delete_todo_items(["1"])
+        (item,) = self.client.saved[0]
+        self.assertEqual(item["uid"], "1")
+        self.assertTrue(item["purchased"])
+
+    async def test_unknown_uid_raises(self):
+        with self.assertRaises(ValueError):
+            await self.entity.async_update_todo_item(
+                TodoItem(summary="X", uid="nope", status=TodoItemStatus.COMPLETED)
+            )
+        self.assertEqual(self.client.saved, [])
 
 
 if __name__ == "__main__":
