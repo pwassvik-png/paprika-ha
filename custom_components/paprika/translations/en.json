@@ -1,0 +1,29 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect to Paprika",
+        "description": "Enter your Paprika Recipe Manager credentials.",
+        "data": {
+          "email": "Email",
+          "password": "Password",
+          "receipt": "Store receipt",
+          "update_interval": "Update interval (minutes)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect to Paprika."
+    }
+  },
+  "options": {
+    "step": {
+      "user": {
+        "title": "Paprika options",
+        "data": {
+          "update_interval": "Update interval (minutes)"
+        }
+      }
+    }
+  }
+}

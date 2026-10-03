@@ -1,0 +1,15 @@
+{
+  "domain": "paprika",
+  "name": "Paprika Recipe Manager",
+  "codeowners": [
+    "@elton"
+  ],
+  "config_flow": true,
+  "documentation": "https://www.paprikaapp.com/",
+  "iot_class": "cloud_polling",
+  "loggers": [
+    "paprika"
+  ],
+  "requirements": [],
+  "version": "0.0.1"
+}

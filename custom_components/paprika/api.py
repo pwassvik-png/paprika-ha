@@ -1,0 +1,136 @@
+"""Asynchronous Paprika API client."""
+
+from __future__ import annotations
+
+import asyncio
+from dataclasses import dataclass
+from typing import Any, Dict, List, Optional
+
+import async_timeout
+from aiohttp import ClientResponseError, ClientSession
+
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
+
+from .const import API_BASE_URL, LOGIN_PATH, SYNC_PATH, USER_AGENT
+
+
+class PaprikaApiError(Exception):
+    """General Paprika API error."""
+
+
+@dataclass
+class PaprikaAuth:
+    """Authentication context for Paprika."""
+
+    email: str
+    password: str
+    receipt: str
+
+
+class PaprikaClient:
+    """Client used to interact with Paprika sync endpoints."""
+
+    def __init__(self, hass: HomeAssistant, auth: PaprikaAuth) -> None:
+        """Initialise Paprika client."""
+        self._session: ClientSession = async_get_clientsession(hass)
+        self._auth = auth
+        self._token: Optional[str] = None
+
+    async def _ensure_token(self, *, force: bool = False) -> None:
+        """Ensure a bearer token is available."""
+        if self._token and not force:
+            return
+        await self._async_login()
+
+    async def _async_login(self) -> None:
+        """Perform login to obtain bearer token."""
+        url = f"{API_BASE_URL}{LOGIN_PATH}"
+        headers = {
+            "User-Agent": USER_AGENT,
+            "Content-Type": "application/x-www-form-urlencoded; charset=utf-8",
+            "Accept": "*/*",
+        }
+        payload = {
+            "email": self._auth.email,
+            "password": self._auth.password,
+            "receipt": self._auth.receipt,
+        }
+
+        try:
+            async with async_timeout.timeout(20):
+                async with self._session.post(url, headers=headers, data=payload) as resp:
+                    resp.raise_for_status()
+                    payload = await resp.json(content_type=None)
+        except ClientResponseError as err:
+            raise PaprikaApiError(
+                f"Paprika login misslyckades ({err.status})"
+            ) from err
+        except asyncio.TimeoutError as err:
+            raise PaprikaApiError("Paprika login timeout") from err
+        except Exception as err:  # noqa: BLE001
+            raise PaprikaApiError("Paprika loginfel") from err
+
+        result = payload.get("result") or {}
+        token = result.get("token")
+        if not token:
+            message = payload.get("error", {}).get("message", "Okänt svar")
+            raise PaprikaApiError(f"Paprika login svarade utan token: {message}")
+        self._token = token
+
+    async def _request(self, path: str, *, method: str = "GET", data: Any = None) -> Any:
+        """Perform a request against Paprika and return JSON."""
+        await self._ensure_token()
+        url = f"{API_BASE_URL}{SYNC_PATH}{path}"
+        headers = {
+            "User-Agent": USER_AGENT,
+            "Authorization": f"Bearer {self._token}",
+        }
+
+        try:
+            async with async_timeout.timeout(20):
+                async with self._session.request(
+                    method,
+                    url,
+                    headers=headers,
+                    data=data,
+                ) as resp:
+                    if resp.status == 401:
+                        await self._ensure_token(force=True)
+                        return await self._request(path, method=method, data=data)
+                    resp.raise_for_status()
+                    payload = await resp.json(content_type=None)
+        except ClientResponseError as err:
+            raise PaprikaApiError(
+                f"Paprika request failed ({err.status}): {err.message}"
+            ) from err
+        except asyncio.TimeoutError as err:
+            raise PaprikaApiError("Paprika request timed out") from err
+        except Exception as err:  # noqa: BLE001
+            raise PaprikaApiError("Paprika request error") from err
+
+        return payload.get("result", payload)
+
+    async def async_fetch_status(self) -> Dict[str, Any]:
+        """Fetch overall status counts."""
+        return await self._request("status/")
+
+    async def async_fetch_meals(self) -> List[Dict[str, Any]]:
+        """Fetch meal plan entries."""
+        return await self._request("meals/")
+
+    async def async_fetch_menu_items(self) -> List[Dict[str, Any]]:
+        """Fetch menu items (long term planning)."""
+        return await self._request("menuitems/")
+
+    async def async_fetch_groceries(self) -> List[Dict[str, Any]]:
+        """Fetch grocery list entries."""
+        return await self._request("groceries/")
+
+    async def async_fetch_meal_types(self) -> List[Dict[str, Any]]:
+        """Fetch meal types metadata."""
+        return await self._request("mealtypes/")
+
+    async def async_fetch_recipes(self) -> List[Dict[str, Any]]:
+        """Fetch recipe metadata (titles, categories, etc.)."""
+        return await self._request("recipes/")
