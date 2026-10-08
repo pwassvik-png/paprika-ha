@@ -38,13 +38,22 @@ class PaprikaDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
     async def _async_update_data(self) -> Dict[str, Any]:
         """Fetch data from Paprika."""
         try:
-            status, meals, menu_items, groceries, meal_types, recipes = await asyncio.gather(
+            (
+                status,
+                meals,
+                menu_items,
+                groceries,
+                meal_types,
+                recipes,
+                pantry,
+            ) = await asyncio.gather(
                 self._client.async_fetch_status(),
                 self._client.async_fetch_meals(),
                 self._client.async_fetch_menu_items(),
                 self._client.async_fetch_groceries(),
                 self._client.async_fetch_meal_types(),
                 self._client.async_fetch_recipes(),
+                self._client.async_fetch_pantry(),
             )
         except PaprikaApiError as err:
             raise UpdateFailed(f"Paprika update failed: {err}") from err
@@ -56,4 +65,5 @@ class PaprikaDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             "groceries": groceries,
             "meal_types": meal_types,
             "recipes": recipes,
+            "pantry": pantry,
         }

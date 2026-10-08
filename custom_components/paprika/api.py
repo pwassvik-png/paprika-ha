@@ -159,6 +159,15 @@ class PaprikaClient:
         """Fetch recipe metadata (titles, categories, etc.)."""
         return await self._request("recipes/")
 
+    async def async_fetch_pantry(self) -> List[Dict[str, Any]]:
+        """Fetch pantry (köksskåp) items."""
+        return await self._request("pantry/")
+
+    async def async_save_pantry(self, items: List[Dict[str, Any]]) -> None:
+        """Create, update or delete (`deleted: True`) pantry items and sync."""
+        await self._request("pantry/", method="POST", gzip_json=items)
+        await self._request("notify/", method="POST")
+
     async def async_save_groceries(self, groceries: List[Dict[str, Any]]) -> None:
         """Create or update grocery items and tell the apps to sync."""
         await self._request("groceries/", method="POST", gzip_json=groceries)
