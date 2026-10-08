@@ -1,0 +1,144 @@
+search_recipes:
+  fields:
+    query:
+      example: "kyckling"
+      selector:
+        text:
+    in_ingredients:
+      default: false
+      selector:
+        boolean:
+    include_trash:
+      default: false
+      selector:
+        boolean:
+    limit:
+      default: 20
+      selector:
+        number:
+          min: 1
+          max: 500
+          mode: box
+
+get_recipe:
+  fields:
+    recipe:
+      required: true
+      example: "Kycklinggryta"
+      selector:
+        text:
+
+create_recipe:
+  fields:
+    name:
+      required: true
+      example: "Pannkakor"
+      selector:
+        text:
+    ingredients:
+      example: "3 dl vetemjöl\n6 dl mjölk\n3 ägg"
+      selector:
+        text:
+          multiline: true
+    directions:
+      example: "Vispa ihop.\nStek i smör."
+      selector:
+        text:
+          multiline: true
+    servings:
+      selector:
+        text:
+    prep_time:
+      selector:
+        text:
+    cook_time:
+      selector:
+        text:
+    total_time:
+      selector:
+        text:
+    description:
+      selector:
+        text:
+          multiline: true
+    notes:
+      selector:
+        text:
+          multiline: true
+    categories:
+      selector:
+        text:
+          multiple: true
+    rating:
+      selector:
+        number:
+          min: 0
+          max: 5
+    favorite:
+      selector:
+        boolean:
+    source:
+      selector:
+        text:
+    source_url:
+      selector:
+        text:
+
+update_recipe:
+  fields:
+    recipe:
+      required: true
+      example: "Pannkakor"
+      selector:
+        text:
+    name:
+      selector:
+        text:
+    ingredients:
+      example: "3 dl vetemjöl\n6 dl mjölk\n3 ägg"
+      selector:
+        text:
+          multiline: true
+    directions:
+      example: "Vispa ihop.\nStek i smör."
+      selector:
+        text:
+          multiline: true
+    servings:
+      selector:
+        text:
+    prep_time:
+      selector:
+        text:
+    cook_time:
+      selector:
+        text:
+    total_time:
+      selector:
+        text:
+    description:
+      selector:
+        text:
+          multiline: true
+    notes:
+      selector:
+        text:
+          multiline: true
+    categories:
+      selector:
+        text:
+          multiple: true
+    rating:
+      selector:
+        number:
+          min: 0
+          max: 5
+    favorite:
+      selector:
+        boolean:
+    source:
+      selector:
+        text:
+    source_url:
+      selector:
+        text:

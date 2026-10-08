@@ -224,9 +224,8 @@ class PaprikaRecipeTotalSensor(PaprikaBaseSensor):
 
     @property
     def native_value(self) -> Any:
-        """Return total number of recipes stored in Paprika."""
-        status = self.coordinator.data.get("status") or {}
-        return status.get("recipes")
+        """Return the number of recipes not in the trash."""
+        return len(_active_recipes(self.coordinator.data))
 
 
 class PaprikaGroceryListSensor(PaprikaBaseSensor):
@@ -272,7 +271,7 @@ class PaprikaGroceryListSensor(PaprikaBaseSensor):
 
 
 class PaprikaRecipePreviewSensor(PaprikaBaseSensor):
-    """Sensor exposing Paprika recipe details."""
+    """Sensor exposing the most recently added recipes."""
 
     def __init__(self, coordinator, entry_id: str) -> None:
         description = PaprikaSensorDescription(
@@ -284,21 +283,29 @@ class PaprikaRecipePreviewSensor(PaprikaBaseSensor):
 
     @property
     def native_value(self) -> Any:
-        """Return total recipes (mirror of status for quick glance)."""
-        status = self.coordinator.data.get("status") or {}
-        return status.get("recipes")
+        """Return the number of recipes not in the trash."""
+        return len(_active_recipes(self.coordinator.data))
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
-        """Expose a subset of recipe metadata for dashboards."""
-        recipes = self.coordinator.data.get("recipes") or []
+        """Expose the 15 newest recipes for dashboards."""
+        categories = self.coordinator.data.get("recipe_categories") or {}
+        newest = sorted(
+            _active_recipes(self.coordinator.data),
+            key=lambda recipe: recipe.get("created") or "",
+            reverse=True,
+        )
         preview = [
             {
                 "name": recipe.get("name"),
-                "category": recipe.get("categories"),
+                "category": [categories.get(c, c) for c in recipe.get("categories") or []],
                 "uid": recipe.get("uid"),
-                "photo": recipe.get("photo"),
+                "photo": recipe.get("photo_url") or recipe.get("image_url"),
             }
-            for recipe in recipes[:15]
+            for recipe in newest[:15]
         ]
         return {"recipes": preview}
+
+
+def _active_recipes(data: dict[str, Any]) -> list[dict[str, Any]]:
+    return [r for r in data.get("recipes") or [] if not r.get("in_trash")]

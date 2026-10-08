@@ -25,5 +25,167 @@
         }
       }
     }
+  },
+  "services": {
+    "search_recipes": {
+      "name": "Search recipes",
+      "description": "Search Paprika recipes by name and optionally ingredients. Returns short results.",
+      "fields": {
+        "query": {
+          "name": "Query",
+          "description": "Text to look for; empty lists all recipes."
+        },
+        "in_ingredients": {
+          "name": "Search ingredients",
+          "description": "Also match recipes whose ingredients contain the text."
+        },
+        "include_trash": {
+          "name": "Include trash",
+          "description": "Include recipes in Paprika's trash."
+        },
+        "limit": {
+          "name": "Limit",
+          "description": "Maximum number of results."
+        }
+      }
+    },
+    "get_recipe": {
+      "name": "Get recipe",
+      "description": "Return a full Paprika recipe with ingredients and directions.",
+      "fields": {
+        "recipe": {
+          "name": "Recipe",
+          "description": "Recipe uid, name, or a part of the name that matches only one recipe."
+        }
+      }
+    },
+    "create_recipe": {
+      "name": "Create recipe",
+      "description": "Create a new recipe in Paprika.",
+      "fields": {
+        "name": {
+          "name": "Name",
+          "description": "Recipe name."
+        },
+        "ingredients": {
+          "name": "Ingredients",
+          "description": "One ingredient per line, or a list."
+        },
+        "directions": {
+          "name": "Directions",
+          "description": "One step per line, or a list."
+        },
+        "servings": {
+          "name": "Servings",
+          "description": "E.g. \"4\" or \"8 pieces\"."
+        },
+        "prep_time": {
+          "name": "Prep time",
+          "description": "Free text, e.g. \"15 min\"."
+        },
+        "cook_time": {
+          "name": "Cook time",
+          "description": "Free text."
+        },
+        "total_time": {
+          "name": "Total time",
+          "description": "Free text."
+        },
+        "description": {
+          "name": "Description",
+          "description": "Short description."
+        },
+        "notes": {
+          "name": "Notes",
+          "description": "Notes."
+        },
+        "categories": {
+          "name": "Categories",
+          "description": "Names of existing Paprika categories."
+        },
+        "rating": {
+          "name": "Rating",
+          "description": "0–5 stars."
+        },
+        "favorite": {
+          "name": "Favorite",
+          "description": "Mark as favorite."
+        },
+        "source": {
+          "name": "Source",
+          "description": "E.g. a site or cookbook."
+        },
+        "source_url": {
+          "name": "Source URL",
+          "description": "Link to the original recipe."
+        }
+      }
+    },
+    "update_recipe": {
+      "name": "Update recipe",
+      "description": "Change fields on an existing Paprika recipe; fields left out are kept.",
+      "fields": {
+        "recipe": {
+          "name": "Recipe",
+          "description": "Recipe uid, name, or a part of the name that matches only one recipe."
+        },
+        "name": {
+          "name": "Name",
+          "description": "Recipe name."
+        },
+        "ingredients": {
+          "name": "Ingredients",
+          "description": "One ingredient per line, or a list."
+        },
+        "directions": {
+          "name": "Directions",
+          "description": "One step per line, or a list."
+        },
+        "servings": {
+          "name": "Servings",
+          "description": "E.g. \"4\" or \"8 pieces\"."
+        },
+        "prep_time": {
+          "name": "Prep time",
+          "description": "Free text, e.g. \"15 min\"."
+        },
+        "cook_time": {
+          "name": "Cook time",
+          "description": "Free text."
+        },
+        "total_time": {
+          "name": "Total time",
+          "description": "Free text."
+        },
+        "description": {
+          "name": "Description",
+          "description": "Short description."
+        },
+        "notes": {
+          "name": "Notes",
+          "description": "Notes."
+        },
+        "categories": {
+          "name": "Categories",
+          "description": "Names of existing Paprika categories."
+        },
+        "rating": {
+          "name": "Rating",
+          "description": "0–5 stars."
+        },
+        "favorite": {
+          "name": "Favorite",
+          "description": "Mark as favorite."
+        },
+        "source": {
+          "name": "Source",
+          "description": "E.g. a site or cookbook."
+        },
+        "source_url": {
+          "name": "Source URL",
+          "description": "Link to the original recipe."
+        }
+      }
+    }
   }
 }

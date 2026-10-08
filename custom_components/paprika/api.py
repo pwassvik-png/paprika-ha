@@ -156,8 +156,23 @@ class PaprikaClient:
         return await self._request("mealtypes/")
 
     async def async_fetch_recipes(self) -> List[Dict[str, Any]]:
-        """Fetch recipe metadata (titles, categories, etc.)."""
+        """Fetch the recipe index: only `uid` and `hash` per recipe."""
         return await self._request("recipes/")
+
+    async def async_fetch_recipe(self, uid: str) -> Dict[str, Any]:
+        """Fetch one full recipe."""
+        return await self._request(f"recipe/{uid}/")
+
+    async def async_fetch_categories(self) -> List[Dict[str, Any]]:
+        """Fetch recipe categories."""
+        return await self._request("categories/")
+
+    async def async_save_recipe(self, recipe: Dict[str, Any]) -> None:
+        """Create or update one recipe (a single object, not an array)."""
+        await self._request(
+            f"recipe/{recipe['uid']}/", method="POST", gzip_json=recipe
+        )
+        await self._request("notify/", method="POST")
 
     async def async_fetch_pantry(self) -> List[Dict[str, Any]]:
         """Fetch pantry (köksskåp) items."""
