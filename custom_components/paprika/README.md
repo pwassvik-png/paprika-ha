@@ -1,8 +1,8 @@
 # Paprika Integration (Custom)
 
-This custom integration syncs data from **Paprika Recipe Manager** into Home Assistant. It currently exposes:
+Egen integration som kopplar **Paprika Recipe Manager** till Home Assistant. Vad som har ändrats och varför står i [CHANGELOG.md](CHANGELOG.md). Integrationen ger:
 
-- Sensors for nästa måltid, antal måltider idag och antal recept (`sensor.recipe_total`; `sensor.recipe_preview` har de 15 senast tillagda recepten som attribut).
+- Sensorer för nästa måltid, antal måltider idag och antal recept (`sensor.recipe_total`; `sensor.recipe_preview` har de 15 senast tillagda recepten som attribut).
 - Kalender (`calendar.paprika_meal_plan`) med Paprikas måltidsplan.
 - Inköpslistan (`todo.paprika_groceries`), läs och skriv.
 - Köksskåpet (`todo.paprika_pantry`), läs och skriv.
@@ -102,4 +102,10 @@ Testerna ligger under `custom_components/paprika/tests/`. `test_todo_compatibili
 
 ### Driftsättning
 
-Ändrade filer kopieras till `/config/custom_components/paprika/` på HA (`scp -O` till `/tmp`, sedan `sudo cp`), följt av `ha core check && ha core restart`. En custom-integration kräver omstart, inte bara omladdning.
+1. Kontrollera att filerna på HA är desamma som i senaste commiten (t.ex. med `md5sum`), så att inget som bara finns på HA skrivs över.
+2. Ta en backup: `sudo cp -a /config/custom_components/paprika /config/paprika.bak-<datum>`.
+3. Kopiera ändrade filer till `/config/custom_components/paprika/` (`scp -O` till `/tmp`, sedan `sudo cp`).
+4. `ha core check && ha core restart`. En custom-integration kräver omstart, inte bara omladdning.
+5. Kontrollera att integrationen har läst in (`loaded`, inte `setup_retry`) och att entiteterna har värden.
+
+Starta inte om HA flera gånger i snabb följd och låt bli att köra loopar mot API:t. Paprika svarar då 429, och integrationen startar inte förrän gränsen har släppt. Kontrollera det med ett enda anrop till `sync/status/` innan nästa omstart.
