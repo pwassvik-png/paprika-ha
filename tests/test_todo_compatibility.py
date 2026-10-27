@@ -66,7 +66,7 @@ mods["homeassistant.util"].dt = mods["homeassistant.util.dt"]
 sys.modules.update(mods)
 
 spec = importlib.util.spec_from_file_location(
-    "custom_components.paprika.todo", Path(__file__).parents[1] / "todo.py"
+    "custom_components.paprika.todo", Path(__file__).parents[1] / "custom_components" / "paprika" / "todo.py"
 )
 todo = importlib.util.module_from_spec(spec)
 sys.modules[spec.name] = todo

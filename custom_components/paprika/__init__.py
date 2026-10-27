@@ -3,19 +3,16 @@
 from __future__ import annotations
 
 from datetime import timedelta
-from pathlib import Path
-from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers.storage import Store
 
-from .api import PaprikaAuth, PaprikaClient, PaprikaApiError
+from .api import PaprikaApiError, PaprikaAuth, PaprikaClient
 from .const import (
     CONF_EMAIL,
     CONF_PASSWORD,
-    CONF_RECEIPT,
     CONF_UPDATE_INTERVAL,
     DEFAULT_UPDATE_INTERVAL_MINUTES,
     DOMAIN,
@@ -24,23 +21,13 @@ from .const import (
 from .coordinator import PaprikaDataUpdateCoordinator
 from .recipes import RecipeStore
 from .services import async_register_services, async_unregister_services
-from .util import resolve_credentials
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Paprika from a config entry."""
     hass.data.setdefault(DOMAIN, {})
 
-    email, password, receipt = await hass.async_add_executor_job(
-        resolve_credentials,
-        entry.data,
-        Path(hass.config.path("secrets.yaml")),
-    )
-
-    if not email or not password or not receipt:
-        raise ConfigEntryNotReady("Paprika credentials saknas (email/lösenord/kvitto).")
-
-    auth = PaprikaAuth(email=email, password=password, receipt=receipt)
+    auth = PaprikaAuth(email=entry.data[CONF_EMAIL], password=entry.data[CONF_PASSWORD])
     client = PaprikaClient(hass, auth)
 
     update_interval = entry.options.get(

@@ -1,2 +1,6 @@
 __pycache__/
 *.pyc
+.venv/
+.pytest_cache/
+secrets.yaml
+.env

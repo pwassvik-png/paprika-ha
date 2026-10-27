@@ -8,7 +8,6 @@ import gzip
 import json
 from typing import Any, Dict, List, Optional
 
-import async_timeout
 from aiohttp import ClientResponseError, ClientSession, FormData
 
 from homeassistant.core import HomeAssistant
@@ -21,13 +20,16 @@ class PaprikaApiError(Exception):
     """General Paprika API error."""
 
 
+class PaprikaAuthError(PaprikaApiError):
+    """Paprika rejected the email or password."""
+
+
 @dataclass
 class PaprikaAuth:
     """Authentication context for Paprika."""
 
     email: str
     password: str
-    receipt: str
 
 
 class PaprikaClient:
@@ -38,12 +40,27 @@ class PaprikaClient:
         self._session: ClientSession = async_get_clientsession(hass)
         self._auth = auth
         self._token: Optional[str] = None
+        # The coordinator fetches several lists at once; they share one login,
+        # and a rejected password is not tried again until the entry reloads.
+        self._login_lock = asyncio.Lock()
+        self._rejected: Optional[PaprikaAuthError] = None
 
     async def _ensure_token(self, *, force: bool = False) -> None:
         """Ensure a bearer token is available."""
         if self._token and not force:
             return
-        await self._async_login()
+        stale = self._token
+        async with self._login_lock:
+            if self._rejected:
+                raise self._rejected
+            # Another request may have logged in while this one waited.
+            if self._token and self._token != stale:
+                return
+            try:
+                await self._async_login()
+            except PaprikaAuthError as err:
+                self._rejected = err
+                raise
 
     async def _async_login(self) -> None:
         """Perform login to obtain bearer token."""
@@ -53,18 +70,17 @@ class PaprikaClient:
             "Content-Type": "application/x-www-form-urlencoded; charset=utf-8",
             "Accept": "*/*",
         }
-        payload = {
-            "email": self._auth.email,
-            "password": self._auth.password,
-            "receipt": self._auth.receipt,
-        }
+        # The apps also send an App Store receipt, but the API does not need it.
+        payload = {"email": self._auth.email, "password": self._auth.password}
 
         try:
-            async with async_timeout.timeout(20):
+            async with asyncio.timeout(20):
                 async with self._session.post(url, headers=headers, data=payload) as resp:
                     resp.raise_for_status()
                     payload = await resp.json(content_type=None)
         except ClientResponseError as err:
+            if err.status in (401, 403):
+                raise PaprikaAuthError("Paprika godtog inte inloggningen") from err
             raise PaprikaApiError(
                 f"Paprika login misslyckades ({err.status})"
             ) from err
@@ -77,7 +93,7 @@ class PaprikaClient:
         token = result.get("token")
         if not token:
             message = payload.get("error", {}).get("message", "Okänt svar")
-            raise PaprikaApiError(f"Paprika login svarade utan token: {message}")
+            raise PaprikaAuthError(f"Paprika login svarade utan token: {message}")
         self._token = token
 
     async def _request(
@@ -87,6 +103,7 @@ class PaprikaClient:
         method: str = "GET",
         data: Any = None,
         gzip_json: Any = None,
+        retry_auth: bool = True,
     ) -> Any:
         """Perform a request against Paprika and return JSON.
 
@@ -109,21 +126,20 @@ class PaprikaClient:
             "Authorization": f"Bearer {self._token}",
         }
 
+        expired = False
         try:
-            async with async_timeout.timeout(20):
+            async with asyncio.timeout(20):
                 async with self._session.request(
                     method,
                     url,
                     headers=headers,
                     data=data,
                 ) as resp:
-                    if resp.status == 401:
-                        await self._ensure_token(force=True)
-                        return await self._request(
-                            path, method=method, data=data, gzip_json=gzip_json
-                        )
-                    resp.raise_for_status()
-                    payload = await resp.json(content_type=None)
+                    if resp.status == 401 and retry_auth:
+                        expired = True
+                    else:
+                        resp.raise_for_status()
+                        payload = await resp.json(content_type=None)
         except ClientResponseError as err:
             raise PaprikaApiError(
                 f"Paprika request failed ({err.status}): {err.message}"
@@ -133,7 +149,22 @@ class PaprikaClient:
         except Exception as err:  # noqa: BLE001
             raise PaprikaApiError("Paprika request error") from err
 
+        if expired:
+            # Log in again once. A second 401 raises instead of looping, which
+            # would otherwise hammer the API until it answers 429.
+            await self._ensure_token(force=True)
+            return await self._request(
+                path,
+                method=method,
+                data=None if gzip_json is not None else data,
+                gzip_json=gzip_json,
+                retry_auth=False,
+            )
         return payload.get("result", payload)
+
+    async def async_validate_login(self) -> None:
+        """Log in now, so the config flow can report wrong credentials."""
+        await self._ensure_token(force=True)
 
     async def async_fetch_status(self) -> Dict[str, Any]:
         """Fetch overall status counts."""

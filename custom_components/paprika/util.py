@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta
-from pathlib import Path
 from typing import Iterable, Tuple, Any, Optional, Dict
 
 from homeassistant.util import dt as dt_util
@@ -33,54 +32,6 @@ def iter_future_meals(
         meal_dt = parse_meal_datetime(meal.get("date"))
         if meal_dt and meal_dt >= now:
             yield meal_dt, meal
-
-
-def load_credentials_from_secrets(path: Path) -> tuple[Optional[str], Optional[str], Optional[str]]:
-    """Extract Paprika credentials from Home Assistant secrets file."""
-    email: Optional[str] = None
-    password: Optional[str] = None
-    receipt: Optional[str] = None
-
-    if not path.exists():
-        return email, password, receipt
-
-    try:
-        for raw_line in path.read_text(encoding="utf-8").splitlines():
-            line = raw_line.strip()
-            if not line or line.startswith("#") or ":" not in line:
-                continue
-            key, value = line.split(":", 1)
-            key = key.strip()
-            value = value.strip()
-            if key == "paprika_email":
-                email = value
-            elif key == "paprika_password":
-                password = value
-            elif key == "paprika_receipt":
-                receipt = value
-    except Exception:
-        return None, None, None
-
-    return email or None, password or None, receipt or None
-
-
-def resolve_credentials(
-    entry_data: dict[str, Any], secrets_path: Path
-) -> tuple[Optional[str], Optional[str], Optional[str]]:
-    """Resolve credentials, preferring the operator-managed secrets file.
-
-    Config-entry values are retained as a fallback for installations that do
-    not use ``secrets.yaml``. This also lets rotated credentials take effect
-    without deleting and recreating the config entry.
-    """
-    secret_email, secret_password, secret_receipt = load_credentials_from_secrets(
-        secrets_path
-    )
-    return (
-        secret_email or entry_data.get("email"),
-        secret_password or entry_data.get("password"),
-        secret_receipt or entry_data.get("receipt"),
-    )
 
 
 def resolve_meal_time_windows(

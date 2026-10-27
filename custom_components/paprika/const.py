@@ -17,5 +17,4 @@ USER_AGENT: Final = (
 
 CONF_EMAIL: Final = "email"
 CONF_PASSWORD: Final = "password"
-CONF_RECEIPT: Final = "receipt"
 CONF_UPDATE_INTERVAL: Final = "update_interval"

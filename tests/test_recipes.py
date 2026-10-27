@@ -5,7 +5,7 @@ import sys
 import unittest
 
 spec = importlib.util.spec_from_file_location(
-    "paprika_recipes", Path(__file__).parents[1] / "recipes.py"
+    "paprika_recipes", Path(__file__).parents[1] / "custom_components" / "paprika" / "recipes.py"
 )
 recipes = importlib.util.module_from_spec(spec)
 sys.modules[spec.name] = recipes

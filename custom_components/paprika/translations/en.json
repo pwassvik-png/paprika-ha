@@ -3,22 +3,41 @@
     "step": {
       "user": {
         "title": "Connect to Paprika",
-        "description": "Enter your Paprika Recipe Manager credentials.",
+        "description": "Sign in with the same email and password as in the Paprika apps.",
         "data": {
           "email": "Email",
           "password": "Password",
-          "receipt": "Store receipt",
           "update_interval": "Update interval (minutes)"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Sign in to Paprika again",
+        "description": "Paprika no longer accepts the password for {email}.",
+        "data": {
+          "password": "Password"
+        }
+      },
+      "reconfigure": {
+        "title": "Change Paprika password",
+        "description": "New password for {email}.",
+        "data": {
+          "password": "Password"
         }
       }
     },
     "error": {
-      "cannot_connect": "Failed to connect to Paprika."
+      "cannot_connect": "Failed to connect to Paprika.",
+      "invalid_auth": "Wrong email or password."
+    },
+    "abort": {
+      "already_configured": "This Paprika account is already set up.",
+      "reauth_successful": "The new password works.",
+      "reconfigure_successful": "The new password works."
     }
   },
   "options": {
     "step": {
-      "user": {
+      "init": {
         "title": "Paprika options",
         "data": {
           "update_interval": "Update interval (minutes)"

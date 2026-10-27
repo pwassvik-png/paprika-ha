@@ -1,0 +1,210 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Anslut till Paprika",
+        "description": "Logga in med samma e-post och lösenord som i Paprika-apparna.",
+        "data": {
+          "email": "E-post",
+          "password": "Lösenord",
+          "update_interval": "Uppdateringsintervall (minuter)"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Logga in i Paprika igen",
+        "description": "Paprika godtar inte längre lösenordet för {email}.",
+        "data": {
+          "password": "Lösenord"
+        }
+      },
+      "reconfigure": {
+        "title": "Byt Paprika-lösenord",
+        "description": "Nytt lösenord för {email}.",
+        "data": {
+          "password": "Lösenord"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Kunde inte nå Paprika.",
+      "invalid_auth": "Fel e-post eller lösenord."
+    },
+    "abort": {
+      "already_configured": "Det här Paprika-kontot är redan tillagt.",
+      "reauth_successful": "Det nya lösenordet fungerar.",
+      "reconfigure_successful": "Det nya lösenordet fungerar."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Paprika-inställningar",
+        "data": {
+          "update_interval": "Uppdateringsintervall (minuter)"
+        }
+      }
+    }
+  },
+  "services": {
+    "search_recipes": {
+      "name": "Sök recept",
+      "description": "Söker bland Paprika-recepten på namn och valfritt ingredienser. Ger en kort lista.",
+      "fields": {
+        "query": {
+          "name": "Sökord",
+          "description": "Text att leta efter; tomt listar alla recept."
+        },
+        "in_ingredients": {
+          "name": "Sök i ingredienser",
+          "description": "Träffa även recept vars ingredienser innehåller texten."
+        },
+        "include_trash": {
+          "name": "Ta med papperskorgen",
+          "description": "Ta med recept i Paprikas papperskorg."
+        },
+        "limit": {
+          "name": "Max antal",
+          "description": "Högsta antal träffar."
+        }
+      }
+    },
+    "get_recipe": {
+      "name": "Hämta recept",
+      "description": "Ger ett helt Paprika-recept med ingredienser och gör så här.",
+      "fields": {
+        "recipe": {
+          "name": "Recept",
+          "description": "Receptets uid, namn eller en del av namnet som bara matchar ett recept."
+        }
+      }
+    },
+    "create_recipe": {
+      "name": "Skapa recept",
+      "description": "Skapar ett nytt recept i Paprika.",
+      "fields": {
+        "name": {
+          "name": "Namn",
+          "description": "Receptets namn."
+        },
+        "ingredients": {
+          "name": "Ingredienser",
+          "description": "En ingrediens per rad, eller en lista."
+        },
+        "directions": {
+          "name": "Gör så här",
+          "description": "Ett steg per rad, eller en lista."
+        },
+        "servings": {
+          "name": "Portioner",
+          "description": "T.ex. \"4\" eller \"8 bitar\"."
+        },
+        "prep_time": {
+          "name": "Förberedelsetid",
+          "description": "Fritext, t.ex. \"15 min\"."
+        },
+        "cook_time": {
+          "name": "Tillagningstid",
+          "description": "Fritext."
+        },
+        "total_time": {
+          "name": "Total tid",
+          "description": "Fritext."
+        },
+        "description": {
+          "name": "Beskrivning",
+          "description": "Kort beskrivning."
+        },
+        "notes": {
+          "name": "Anteckningar",
+          "description": "Anteckningar."
+        },
+        "categories": {
+          "name": "Kategorier",
+          "description": "Namn på befintliga Paprika-kategorier."
+        },
+        "rating": {
+          "name": "Betyg",
+          "description": "0–5 stjärnor."
+        },
+        "favorite": {
+          "name": "Favorit",
+          "description": "Markera som favorit."
+        },
+        "source": {
+          "name": "Källa",
+          "description": "T.ex. en sajt eller kokbok."
+        },
+        "source_url": {
+          "name": "Källänk",
+          "description": "Länk till originalreceptet."
+        }
+      }
+    },
+    "update_recipe": {
+      "name": "Ändra recept",
+      "description": "Ändrar fält i ett befintligt Paprika-recept; fält som utelämnas behålls.",
+      "fields": {
+        "recipe": {
+          "name": "Recept",
+          "description": "Receptets uid, namn eller en del av namnet som bara matchar ett recept."
+        },
+        "name": {
+          "name": "Namn",
+          "description": "Receptets namn."
+        },
+        "ingredients": {
+          "name": "Ingredienser",
+          "description": "En ingrediens per rad, eller en lista."
+        },
+        "directions": {
+          "name": "Gör så här",
+          "description": "Ett steg per rad, eller en lista."
+        },
+        "servings": {
+          "name": "Portioner",
+          "description": "T.ex. \"4\" eller \"8 bitar\"."
+        },
+        "prep_time": {
+          "name": "Förberedelsetid",
+          "description": "Fritext, t.ex. \"15 min\"."
+        },
+        "cook_time": {
+          "name": "Tillagningstid",
+          "description": "Fritext."
+        },
+        "total_time": {
+          "name": "Total tid",
+          "description": "Fritext."
+        },
+        "description": {
+          "name": "Beskrivning",
+          "description": "Kort beskrivning."
+        },
+        "notes": {
+          "name": "Anteckningar",
+          "description": "Anteckningar."
+        },
+        "categories": {
+          "name": "Kategorier",
+          "description": "Namn på befintliga Paprika-kategorier."
+        },
+        "rating": {
+          "name": "Betyg",
+          "description": "0–5 stjärnor."
+        },
+        "favorite": {
+          "name": "Favorit",
+          "description": "Markera som favorit."
+        },
+        "source": {
+          "name": "Källa",
+          "description": "T.ex. en sajt eller kokbok."
+        },
+        "source_url": {
+          "name": "Källänk",
+          "description": "Länk till originalreceptet."
+        }
+      }
+    }
+  }
+}

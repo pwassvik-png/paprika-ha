@@ -8,9 +8,10 @@ import logging
 from typing import Any, Dict
 
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .api import PaprikaClient, PaprikaApiError
+from .api import PaprikaApiError, PaprikaAuthError, PaprikaClient
 from .const import DOMAIN
 from .recipes import RecipeStore
 
@@ -58,6 +59,9 @@ class PaprikaDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                 self._client.async_fetch_recipes(),
                 self._client.async_fetch_pantry(),
             )
+        except PaprikaAuthError as err:
+            # Starts the reauth flow, so the user is asked for the new password.
+            raise ConfigEntryAuthFailed(str(err)) from err
         except PaprikaApiError as err:
             raise UpdateFailed(f"Paprika update failed: {err}") from err
 
