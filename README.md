@@ -40,7 +40,7 @@ Inofficiell integration som kopplar [Paprika Recipe Manager 3](https://www.papri
 
 [![Öppna i HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=pwassvik-png&repository=paprika-ha&category=integration)
 
-HACS: tryck på knappen ovan, eller lägg till `https://github.com/pwassvik-png/paprika-ha` som anpassat förråd av typen *Integration*, installera *Paprika Recipe Manager* och starta om Home Assistant.
+HACS: tryck på knappen ovan, eller lägg till `https://github.com/pwassvik-png/paprika-ha` under ⋮ → *Anpassade arkiv* med typen *Integration*, installera *Paprika Recipe Manager* och starta om Home Assistant.
 
 Manuellt: kopiera `custom_components/paprika/` till `config/custom_components/` och starta om Home Assistant.
 
