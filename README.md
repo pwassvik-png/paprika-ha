@@ -21,6 +21,14 @@ Inofficiell integration som kopplar [Paprika Recipe Manager 3](https://www.papri
 | `paprika.create_recipe` | Skapar ett recept. |
 | `paprika.update_recipe` | Ändrar de angivna fälten i ett recept. |
 
+<p>
+  <img src="docs/images/kalender.png" alt="Måltidsplanen i Home Assistants kalender" width="100%">
+</p>
+<p>
+  <img src="docs/images/inkopslista.png" alt="Inköpslistan som att göra-lista" width="49%">
+  <img src="docs/images/koksskap.png" alt="Köksskåpet som att göra-lista" width="49%">
+</p>
+
 Ändringar från HA skickas till Paprika direkt, och apparna ombeds synka. Data hämtas från Paprika var 30:e minut (går att ställa mellan 5 och 180 minuter).
 
 ## Krav
@@ -30,7 +38,9 @@ Inofficiell integration som kopplar [Paprika Recipe Manager 3](https://www.papri
 
 ## Installation
 
-HACS: lägg till `https://github.com/pwassvik-png/paprika-ha` som anpassat förråd av typen *Integration*, installera *Paprika Recipe Manager* och starta om Home Assistant.
+[![Öppna i HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=pwassvik-png&repository=paprika-ha&category=integration)
+
+HACS: tryck på knappen ovan, eller lägg till `https://github.com/pwassvik-png/paprika-ha` som anpassat förråd av typen *Integration*, installera *Paprika Recipe Manager* och starta om Home Assistant.
 
 Manuellt: kopiera `custom_components/paprika/` till `config/custom_components/` och starta om Home Assistant.
 
