@@ -22,6 +22,8 @@ Hur integrationen fungerar står i [README.md](README.md). Här står vad som ha
 
 Testerna ligger nu i `tests/` i roten, så att de inte följer med när integrationen installeras.
 
+README:n är omskriven till en kort, faktabaserad beskrivning. Anteckningarna om Paprikas API ligger i `docs/API.md`.
+
 ## 2026-10-08 – Recept och rättade receptsensorer (`8a8f280`)
 
 **Nytt**
